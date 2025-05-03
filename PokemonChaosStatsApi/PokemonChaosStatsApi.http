@@ -1,0 +1,6 @@
+@PokemonChaosStatsApi_HostAddress = http://localhost:5055
+
+GET {{PokemonChaosStatsApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
