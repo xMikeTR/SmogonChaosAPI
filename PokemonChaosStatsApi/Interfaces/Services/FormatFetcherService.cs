@@ -14,8 +14,5 @@ public class FormatDateFetcherService : IFormatFetcherService
         }
 
         return formats.Skip(1).ToList();
-            //return Ok(new{Success = true,
-            //Data = formats.Skip(1).ToList()});
-
     }            
 }

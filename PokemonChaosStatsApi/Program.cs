@@ -1,4 +1,7 @@
 using System.Threading.RateLimiting;
+
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRateLimiter(options =>
@@ -36,6 +39,8 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddResponseCaching();
 builder.Services.AddScoped<IDateFetcherService, DateFetcherService>();
 builder.Services.AddScoped<IFormatFetcherService, FormatDateFetcherService>();
+//builder.Services.AddScoped<IRequestsService>();
+builder.Services.AddHttpClient<IRequestsService>();
 
 builder.Services.AddCors(options =>
 {
