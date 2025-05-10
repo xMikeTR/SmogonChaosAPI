@@ -13,11 +13,12 @@ public class AllDataFetcher : IAllDataFetcher
 {
     private readonly IRequestsService _requestService;
 
-    public AllDataFetcher(IRequestsService requestService)
+    public AllDataFetcher(IRequestsService requestService, IUriService uriService)
     {
         _requestService = requestService;
+        this.uriService = uriService;
     }
-    public async Task<ActionResult<SmogonResponse>> GetAllData(string date, string format, int page = 1, int pageSize = 20)
+    public async Task<ActionResult<SmogonResponse>> GetAllData(string date, string format, [FromQuery] PaginationFilter filter)
     {
         string url = $"stats/{date}/chaos/{format}.json";
 
@@ -35,20 +36,28 @@ public class AllDataFetcher : IAllDataFetcher
                 return pokemon;
             
             });
+            var route = Request.Path.Value;
 
-            int totalItems = dataWithNames.Count;
-            var pagedResults = dataWithNames
-                .Skip((page -1) * pageSize)
-                .Take(pageSize)
-                .ToDictionary(kvp=>kvp.Key, kvp=>kvp.Value);
+            var validFilter = new PaginationFilter(filter.PageNumber,filter.PageSize);
+            var pagedData = dataWithNames
+                .Skip((validFilter.PageNumber - 1)*validFilter.PageSize)
+                .Take(validFilter.PageSize)
+                .ToDictionary(kvp=>kvp.Key,kvp=>kvp.Value);
+            var totalRecords =  dataWithNames.Count();
 
-            
+            //int totalItems = dataWithNames.Count;
+            //var pagedResults = dataWithNames
+              //  .Skip((page -1) * pageSize)
+                //.Take(pageSize)
+                //.ToDictionary(kvp=>kvp.Key, kvp=>kvp.Value);
 
-
-        return new OkObjectResult(new {
-                smogonResponse.Info,
+        //return new OkObjectResult(new {
+          //      smogonResponse.Info,
                 //Meta = meta,
-                Data = pagedResults
-            });
+            //    Data = pagedResults
+            //});
+        //return new OkObjectResult(new PagedResponse<Dictionary<string,Pokemon>>(pagedData,validFilter.PageNumber,validFilter.PageSize));
+        var pagedResponse = PaginationHelper.CreatePagedReponse<Dictionary<string,Pokemon>>(pagedData,validFilter,totalRecords,uriService,route);
+        return new OkObjectResult(pagedResponse);
     }
 }

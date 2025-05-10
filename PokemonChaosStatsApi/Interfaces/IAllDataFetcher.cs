@@ -3,5 +3,5 @@ using Microsoft.AspNetCore.Mvc;
 
 public interface IAllDataFetcher
 {
-    Task<ActionResult<SmogonResponse>>  GetAllData(string date, string format,int pageIndex,int pageSize);
+    Task<ActionResult<SmogonResponse>>  GetAllData(string date, string format,[FromQuery] PaginationFilter filter);
 }
