@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.WebUtilities;
+
 public class UriService : IUriService
 {
     private readonly string _baseUri;

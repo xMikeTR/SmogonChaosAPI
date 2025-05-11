@@ -1,5 +1,5 @@
 using System.Threading.RateLimiting;
-
+using Microsoft.AspNetCore.Http;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,10 +41,10 @@ builder.Services.AddScoped<IDateFetcherService, DateFetcherService>();
 builder.Services.AddScoped<IFormatFetcherService, FormatDateFetcherService>();
 //builder.Services.AddScoped<IRequestsService>();
 builder.Services.AddHttpClient<IRequestsService>();
-builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IUriService>(o =>
 {
-    var acessor = o.GetRequiredService<IHttpContextAccessor>();
+    var accessor = o.GetRequiredService<IHttpContextAccessor>();
     var request = accessor.HttpContext.Request;
     var uri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
     return new UriService(uri);

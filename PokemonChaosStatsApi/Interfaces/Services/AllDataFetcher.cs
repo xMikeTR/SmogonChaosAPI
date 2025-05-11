@@ -12,11 +12,14 @@ namespace PokemonChaosStatsApi.Services;
 public class AllDataFetcher : IAllDataFetcher
 {
     private readonly IRequestsService _requestService;
+    private readonly IUriService uriService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AllDataFetcher(IRequestsService requestService, IUriService uriService)
+    public AllDataFetcher(IRequestsService requestService, IUriService uriService, IHttpContextAccessor httpContextAccessor)
     {
         _requestService = requestService;
         this.uriService = uriService;
+        _httpContextAccessor = httpContextAccessor;
     }
     public async Task<ActionResult<SmogonResponse>> GetAllData(string date, string format, [FromQuery] PaginationFilter filter)
     {
@@ -36,13 +39,14 @@ public class AllDataFetcher : IAllDataFetcher
                 return pokemon;
             
             });
-            var route = Request.Path.Value;
+            var route = _httpContextAccessor.HttpContext?.Request.Path.Value;
 
             var validFilter = new PaginationFilter(filter.PageNumber,filter.PageSize);
             var pagedData = dataWithNames
                 .Skip((validFilter.PageNumber - 1)*validFilter.PageSize)
                 .Take(validFilter.PageSize)
                 .ToDictionary(kvp=>kvp.Key,kvp=>kvp.Value);
+                //.ToListAsync();
             var totalRecords =  dataWithNames.Count();
 
             //int totalItems = dataWithNames.Count;
@@ -57,7 +61,9 @@ public class AllDataFetcher : IAllDataFetcher
             //    Data = pagedResults
             //});
         //return new OkObjectResult(new PagedResponse<Dictionary<string,Pokemon>>(pagedData,validFilter.PageNumber,validFilter.PageSize));
-        var pagedResponse = PaginationHelper.CreatePagedReponse<Dictionary<string,Pokemon>>(pagedData,validFilter,totalRecords,uriService,route);
+        //we just need to pass in our main dict and we're done
+        List<SmogonResponse> spokemon = new List<SmogonResponse>();
+        var pagedResponse = PaginationHelper.CreatePagedReponse<spokemon>(pagedData,validFilter,totalRecords,uriService,route);
         return new OkObjectResult(pagedResponse);
     }
 }
