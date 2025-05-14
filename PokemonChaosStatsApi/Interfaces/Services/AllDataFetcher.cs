@@ -6,6 +6,7 @@ using System.Text.Json;
 using PokemonChaosStatsApi.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace PokemonChaosStatsApi.Services;
 
@@ -48,22 +49,17 @@ public class AllDataFetcher : IAllDataFetcher
                 .ToDictionary(kvp=>kvp.Key,kvp=>kvp.Value);
                 //.ToListAsync();
             var totalRecords =  dataWithNames.Count();
+            var pageNumber = 2;
+            var pageSize = 5;
+            var pagedThing = from pokemon in dataWithNames
+                            //orderby pokemon.Name
+                            select pokemon;
 
-            //int totalItems = dataWithNames.Count;
-            //var pagedResults = dataWithNames
-              //  .Skip((page -1) * pageSize)
-                //.Take(pageSize)
-                //.ToDictionary(kvp=>kvp.Key, kvp=>kvp.Value);
+            var paginatedResult = pagedThing
+                .Skip((pageNumber-1)*pageSize)
+                .Take(pageSize)
+                .ToList();
 
-        //return new OkObjectResult(new {
-          //      smogonResponse.Info,
-                //Meta = meta,
-            //    Data = pagedResults
-            //});
-        //return new OkObjectResult(new PagedResponse<Dictionary<string,Pokemon>>(pagedData,validFilter.PageNumber,validFilter.PageSize));
-        //we just need to pass in our main dict and we're done
-        List<SmogonResponse> spokemon = new List<SmogonResponse>();
-        var pagedResponse = PaginationHelper.CreatePagedReponse<spokemon>(pagedData,validFilter,totalRecords,uriService,route);
-        return new OkObjectResult(pagedResponse);
+        return new OkObjectResult(paginatedResult);
     }
 }

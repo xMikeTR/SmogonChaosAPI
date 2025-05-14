@@ -13,7 +13,7 @@ public class RequestsService : IRequestsService
         _httpClient= httpClient;
 
         _httpClient.BaseAddress = new Uri("https://www.smogon.com/");
-        Timeout = TimeSpan.FromSeconds(15);
+        _httpClient.Timeout = TimeSpan.FromSeconds(15);
     }
 
     public async Task<SmogonResponse> GetStreamAsync(string url)
