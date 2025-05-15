@@ -3,12 +3,10 @@ using PokemonChaosStatsApi.Models;
 using System.Net.Http.Json;
 using System.Net.Http;
 using System.Text.Json;
-using PokemonChaosStatsApi.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
-namespace PokemonChaosStatsApi.Services;
 
 public class AllDataFetcher : IAllDataFetcher
 {
@@ -47,7 +45,6 @@ public class AllDataFetcher : IAllDataFetcher
                 .Skip((validFilter.PageNumber - 1)*validFilter.PageSize)
                 .Take(validFilter.PageSize)
                 .ToDictionary(kvp=>kvp.Key,kvp=>kvp.Value);
-                //.ToListAsync();
             var totalRecords =  dataWithNames.Count();
             var pageNumber = 2;
             var pageSize = 5;

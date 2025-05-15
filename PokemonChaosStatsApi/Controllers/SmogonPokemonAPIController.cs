@@ -21,17 +21,20 @@ public class SmogonPokemonAPIController : ControllerBase
     private readonly InputValidators _inputValidators;
     private readonly IDateFetcherService _dateService;
     private readonly IFormatFetcherService _formatService;
+    private readonly IAllDataFetcher _dataFetcher;
 
     public SmogonPokemonAPIController(
         ILogger<SmogonPokemonAPIController> logger, 
         InputValidators inputValidators,
         IDateFetcherService dateService,
-        IFormatFetcherService formatService)
+        IFormatFetcherService formatService,
+        IAllDataFetcher dataFetcher)
         {
             _logger = logger;
             _inputValidators = inputValidators;
             _dateService = dateService;
             _formatService = formatService;
+            _dataFetcher = dataFetcher;
         }
     
     private static  HttpClient sharedClient = new()
@@ -67,7 +70,7 @@ public class SmogonPokemonAPIController : ControllerBase
 
     [HttpGet("alldata")]
     [ResponseCache(Duration = 60, VaryByQueryKeys = new[] {"date","format"})]
-    public async Task<IActionResult> GetFromJsonAsync(string date, string format, int page = 1, int pageSize = 20)
+    public async Task<IActionResult> GetFromJsonAsync(string date, string format, [FromQuery] PaginationFilter filter) //, int page = 1, int pageSize = 20)
     {
         if (!_inputValidators.IsValidDate(date))
         {
@@ -79,68 +82,9 @@ public class SmogonPokemonAPIController : ControllerBase
             return BadRequest(new{Success = false, Error="Invalid battle format, please check available formats."});
         }
 
-       
-            string url = $"stats/{date}/chaos/{format}.json";
-            using Stream stream = await sharedClient.GetStreamAsync(url);
 
-            SmogonResponse? smogonResponse = await JsonSerializer.DeserializeAsync<SmogonResponse>(
-                stream,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-            if (smogonResponse is null)
-            {
-                return NotFound("failure");
-        
-            }
-
-            var dataWithNames = smogonResponse.Data
-            .ToDictionary(kvp => kvp.Key, kvp => 
-            {
-                var pokemon = kvp.Value;
-                pokemon.Name = kvp.Key;      
-                return pokemon;
-            
-            });
-
-            int totalItems = dataWithNames.Count;
-            var pagedResults = dataWithNames
-                .Skip((page -1) * pageSize)
-                .Take(pageSize)
-                .ToDictionary(kvp=>kvp.Key, kvp=>kvp.Value);
-
-            var meta = new {
-                Page = page,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize)
-            };
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-
-            string BuildLink(int pageNum) =>
-                $"{baseUrl}?page={pageNum}&pageSize={pageSize}";
-
-            var links = new List<string>();
-
-            if (page > 1)
-                links.Add($"<${BuildLink(page - 1)}>; rel=\"prev\"");
-
-            if (page < totalPages)
-                links.Add($"<${BuildLink(page + 1)}>; rel=\"next\"");
-
-            links.Add($"<${BuildLink(1)}>; rel=\"first\"");
-            links.Add($"<${BuildLink(totalPages)}>; rel=\"last\"");
-
-            Response.Headers.Add("Link", string.Join(", ", links));
-
-
-            return Ok(new {
-                smogonResponse.Info,
-                Meta = meta,
-                Data = pagedResults
-            });
+       var allpokemon = _dataFetcher.GetAllData(date,format,filter);
+       return Ok(allpokemon);
         
     }
 

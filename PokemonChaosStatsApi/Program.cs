@@ -39,7 +39,8 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddResponseCaching();
 builder.Services.AddScoped<IDateFetcherService, DateFetcherService>();
 builder.Services.AddScoped<IFormatFetcherService, FormatDateFetcherService>();
-//builder.Services.AddScoped<IRequestsService>();
+builder.Services.AddScoped<IAllDataFetcher, AllDataFetcher>();
+builder.Services.AddScoped<IRequestsService, RequestsService>();
 builder.Services.AddHttpClient<IRequestsService>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IUriService>(o =>
