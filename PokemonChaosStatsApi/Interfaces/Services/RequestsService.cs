@@ -19,7 +19,8 @@ public class RequestsService : IRequestsService
     public async Task<SmogonResponse> GetStreamAsync(string url)
     {
         using Stream stream = await _httpClient.GetStreamAsync(url);
-
+            Console.WriteLine("[DEBUG] Raw JSON:");
+            Console.WriteLine(json);
             SmogonResponse? smogonResponse = await JsonSerializer.DeserializeAsync<SmogonResponse>(
                 stream,
                 new JsonSerializerOptions

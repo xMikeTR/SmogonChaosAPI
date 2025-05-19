@@ -22,7 +22,7 @@ public class AllDataFetcher : IAllDataFetcher
     }
     public async Task<ActionResult<SmogonResponse>> GetAllData(string date, string format, [FromQuery] PaginationFilter filter)
     {
-        string url = $"stats/{date}/chaos/{format}.json";
+        string url = $"stats/{date}/chaos/{format}";
 
         var smogonResponse = await _requestService.GetStreamAsync(url);
             if (smogonResponse is null)
@@ -46,7 +46,7 @@ public class AllDataFetcher : IAllDataFetcher
                 .Take(validFilter.PageSize)
                 .ToDictionary(kvp=>kvp.Key,kvp=>kvp.Value);
             var totalRecords =  dataWithNames.Count();
-            var pageNumber = 2;
+            var pageNumber = 1;
             var pageSize = 5;
             var pagedThing = from pokemon in dataWithNames
                             //orderby pokemon.Name

@@ -83,7 +83,7 @@ public class SmogonPokemonAPIController : ControllerBase
         }
 
 
-       var allpokemon = _dataFetcher.GetAllData(date,format,filter);
+       var allpokemon = await _dataFetcher.GetAllData(date,format,filter);
        return Ok(allpokemon);
         
     }

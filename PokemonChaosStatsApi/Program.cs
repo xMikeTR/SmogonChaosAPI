@@ -41,7 +41,8 @@ builder.Services.AddScoped<IDateFetcherService, DateFetcherService>();
 builder.Services.AddScoped<IFormatFetcherService, FormatDateFetcherService>();
 builder.Services.AddScoped<IAllDataFetcher, AllDataFetcher>();
 builder.Services.AddScoped<IRequestsService, RequestsService>();
-builder.Services.AddHttpClient<IRequestsService>();
+builder.Services.AddHttpClient();
+//builder.Services.AddHttpClient<IRequestsService>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IUriService>(o =>
 {
