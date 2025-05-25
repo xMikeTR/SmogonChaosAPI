@@ -54,14 +54,6 @@ public class AllDataFetcher : IAllDataFetcher
             var totalRecords =  dataWithNames.Count();
             var pageNumber = 1;
             var pageSize = 5;
-            var pagedThing = from pokemon in dataWithNames
-                            //orderby pokemon.Name
-                            select pokemon;
-
-            var paginatedResult = pagedThing
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToList();
 
         return new SmogonResponse
         {
