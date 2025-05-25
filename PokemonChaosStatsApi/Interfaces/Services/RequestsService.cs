@@ -8,7 +8,7 @@ public class RequestsService : IRequestsService
 {
     private readonly HttpClient _httpClient;
 
-    public RequestsService(HttpClient httpClient)
+    public RequestsService(HttpClient httpClient, ILogger<RequestsService> logger)
     {
         _httpClient= httpClient;
 
@@ -19,8 +19,6 @@ public class RequestsService : IRequestsService
     public async Task<SmogonResponse> GetStreamAsync(string url)
     {
         using Stream stream = await _httpClient.GetStreamAsync(url);
-            Console.WriteLine("[DEBUG] Raw JSON:");
-            Console.WriteLine(json);
             SmogonResponse? smogonResponse = await JsonSerializer.DeserializeAsync<SmogonResponse>(
                 stream,
                 new JsonSerializerOptions

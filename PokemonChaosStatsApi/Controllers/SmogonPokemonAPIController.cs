@@ -69,7 +69,7 @@ public class SmogonPokemonAPIController : ControllerBase
 
 
     [HttpGet("alldata")]
-    [ResponseCache(Duration = 60, VaryByQueryKeys = new[] {"date","format"})]
+    [ResponseCache(Duration = 60, VaryByQueryKeys = new[] {"date","format","pageNumber","pageSize"})]
     public async Task<IActionResult> GetFromJsonAsync(string date, string format, [FromQuery] PaginationFilter filter) //, int page = 1, int pageSize = 20)
     {
         if (!_inputValidators.IsValidDate(date))
@@ -84,6 +84,7 @@ public class SmogonPokemonAPIController : ControllerBase
 
 
        var allpokemon = await _dataFetcher.GetAllData(date,format,filter);
+       if(allpokemon == null) return NotFound();
        return Ok(allpokemon);
         
     }

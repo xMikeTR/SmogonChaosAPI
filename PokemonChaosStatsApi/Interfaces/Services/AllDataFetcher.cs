@@ -13,21 +13,27 @@ public class AllDataFetcher : IAllDataFetcher
     private readonly IRequestsService _requestService;
     private readonly IUriService uriService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<AllDataFetcher> _logger;
 
-    public AllDataFetcher(IRequestsService requestService, IUriService uriService, IHttpContextAccessor httpContextAccessor)
+    public AllDataFetcher(
+        IRequestsService requestService, 
+        IUriService uriService, 
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<AllDataFetcher> logger)
     {
+        _logger = logger;
         _requestService = requestService;
         this.uriService = uriService;
         _httpContextAccessor = httpContextAccessor;
     }
-    public async Task<ActionResult<SmogonResponse>> GetAllData(string date, string format, [FromQuery] PaginationFilter filter)
+    public async Task<SmogonResponse?> GetAllData(string date, string format, [FromQuery] PaginationFilter filter)
     {
         string url = $"stats/{date}/chaos/{format}";
 
         var smogonResponse = await _requestService.GetStreamAsync(url);
             if (smogonResponse is null)
             {
-                return new NotFoundResult();
+                return null;
         
             }
             var dataWithNames = smogonResponse.Data
@@ -57,6 +63,10 @@ public class AllDataFetcher : IAllDataFetcher
                 .Take(pageSize)
                 .ToList();
 
-        return new OkObjectResult(paginatedResult);
+        return new SmogonResponse
+        {
+            Info = smogonResponse.Info,
+            Data = pagedData
+        };
     }
 }
