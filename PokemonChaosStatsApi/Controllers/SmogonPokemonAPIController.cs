@@ -22,26 +22,24 @@ public class SmogonPokemonAPIController : ControllerBase
     private readonly IDateFetcherService _dateService;
     private readonly IFormatFetcherService _formatService;
     private readonly IAllDataFetcher _dataFetcher;
+    private readonly IPokemonSelector _pokemonSelector;
 
     public SmogonPokemonAPIController(
         ILogger<SmogonPokemonAPIController> logger, 
         InputValidators inputValidators,
         IDateFetcherService dateService,
         IFormatFetcherService formatService,
-        IAllDataFetcher dataFetcher)
+        IAllDataFetcher dataFetcher,
+        IPokemonSelector pokemonSelector)
         {
             _logger = logger;
             _inputValidators = inputValidators;
             _dateService = dateService;
             _formatService = formatService;
             _dataFetcher = dataFetcher;
+            _pokemonSelector = pokemonSelector;
         }
     
-    private static  HttpClient sharedClient = new()
-    {
-        BaseAddress = new Uri("https://www.smogon.com/"),
-        Timeout = TimeSpan.FromSeconds(15)
-    };
     //Returning available dates within Smogon stats, so users know how to filter later. Separation from main filtering endpoint for modularity
     [HttpGet("dates")]
     [ResponseCache(Duration = 60)]
@@ -51,9 +49,6 @@ public class SmogonPokemonAPIController : ControllerBase
         return Ok(dates);
     }
         
-
-    
-
     //Pass in a date in format yyyy-mm
     [HttpGet("formats")]
     [ResponseCache(Duration = 60, VaryByQueryKeys = new[] {"date"})]
@@ -83,9 +78,9 @@ public class SmogonPokemonAPIController : ControllerBase
         }
 
 
-       var allpokemon = await _dataFetcher.GetAllData(date,format,filter);
-       if(allpokemon == null) return NotFound();
-       return Ok(allpokemon);
+       var alldata= await _dataFetcher.GetAllData(date,format,filter);
+       if(alldata == null) return NotFound();
+       return Ok(alldata);
         
     }
 
@@ -109,41 +104,11 @@ public class SmogonPokemonAPIController : ControllerBase
             return BadRequest(new{Success = false, Error="Invalid Pokemon Name"});
         }
 
-        using Stream stream = await sharedClient.GetStreamAsync($"stats/{date}/chaos/{format}.json");
+        var allpokemon = await _pokemonSelector.GetAllPokemonData(date,format,selected);
+        if(allpokemon == null) return NotFound();
+        return Ok(allpokemon);
 
-        SmogonResponse? smogonResponse = await JsonSerializer.DeserializeAsync<SmogonResponse>(
-            stream,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-        if (smogonResponse is null)
-        {
-            return NotFound("failure");
-        
-        }
-
-        var dataWithNames = smogonResponse.Data
-        .ToDictionary(kvp => kvp.Key, kvp => 
-        {
-            var pokemon = kvp.Value;
-            pokemon.Name = kvp.Key;      
-            return pokemon;
-            
-        });
-
-
-        var filteredNames = dataWithNames
-            .Where(kvp=>kvp.Value.Name.Equals(selected,StringComparison.OrdinalIgnoreCase))
-            .ToDictionary(kvp=> kvp.Key, kvp=>kvp.Value);
-        
-        if (!dataWithNames.ContainsKey(selected))
-        {
-            _logger.LogWarning("Invalid Pokémon: {selected}", selected);
-            return NotFound(new {Success = false, Error = $"Pokémon '{selected}' not found for format '{format}' and date '{date}'."});
-        }
-
-        return Ok(new {smogonResponse.Info, Data = filteredNames});
+       
         
     }
 
