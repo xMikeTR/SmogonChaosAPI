@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using System.Text.RegularExpressions;
 
 
-public  class InputValidators
+public class InputValidators : IInputValidators
 {
     private readonly ILogger<InputValidators> _logger;
 

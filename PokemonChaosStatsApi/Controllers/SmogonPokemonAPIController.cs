@@ -18,7 +18,7 @@ namespace PokemonChaosStatsApi.Controllers;
 public class SmogonPokemonAPIController : ControllerBase
 {
     private readonly ILogger<SmogonPokemonAPIController> _logger;
-    private readonly InputValidators _inputValidators;
+    private readonly IInputValidators _inputValidators;
     private readonly IDateFetcherService _dateService;
     private readonly IFormatFetcherService _formatService;
     private readonly IAllDataFetcher _dataFetcher;
@@ -26,7 +26,7 @@ public class SmogonPokemonAPIController : ControllerBase
 
     public SmogonPokemonAPIController(
         ILogger<SmogonPokemonAPIController> logger, 
-        InputValidators inputValidators,
+        IInputValidators inputValidators,
         IDateFetcherService dateService,
         IFormatFetcherService formatService,
         IAllDataFetcher dataFetcher,
