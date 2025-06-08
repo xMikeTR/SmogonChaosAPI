@@ -38,9 +38,6 @@ public class SmogonControllerTests
 
     }
 
-
-
-
     [Fact]
     public void Test_Date_Fetcher()
     {
@@ -57,6 +54,44 @@ public class SmogonControllerTests
         var okResult = Assert.IsType<OkObjectResult>(result);
         var returnedDates = Assert.IsType<List<string>>(okResult.Value);
         Assert.Equal(3,returnedDates.Count);
+        
+    }
+
+    [Fact]
+    public void GetAvailableFormats_WhenServiceThrowsException_ReturnsBadRequest()
+    {
+        // Arrange
+        var testDate = "2024-01";
+        _mockFormatService.Setup(s => s.GetFormats(testDate))
+                      .Throws(new ArgumentException("Invalid date format"));
+    
+        // Act
+        var result = _controller.GetAvailableFormats(testDate);
+    
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result);
+    }   
+
+    [Fact]
+    public void Test_Format_Fetcher_ReturnOk()
+    {
+        //Arrange
+        var testDate = "2024-01";
+        var expectedFormats = new List<string> {"gen1moderngen1-0.json","gen1uu-1760.json","gen3ou-0.json"};
+        _mockFormatService.Setup(s => s.GetFormats(testDate))
+                        .Returns(expectedFormats);
+
+        _mockValidators.Setup(v => v.IsValidDate(testDate))
+                        .Returns(true);
+
+        //Act
+        var formatResult = _controller.GetAvailableFormats(testDate);
+
+
+        //Assert
+        var okResult = Assert.IsType<OkObjectResult>(formatResult);
+        var returnedFormats = Assert.IsType<List<string>>(okResult.Value);
+        Assert.Equal(3,returnedFormats.Count);
         
     }
 }
