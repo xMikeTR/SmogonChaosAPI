@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PokemonChaosStatsApi.Controllers;
 using Microsoft.Extensions.Logging;
+using PokemonChaosStatsApi.Models;
 
 
 namespace PokemonChaosStatsAPI_Tests;
@@ -70,7 +71,7 @@ public class SmogonControllerTests
     
         // Assert
         Assert.IsType<BadRequestObjectResult>(result);
-    }   
+    }  
 
     [Fact]
     public void Test_Format_Fetcher_ReturnOk()
@@ -92,6 +93,78 @@ public class SmogonControllerTests
         var okResult = Assert.IsType<OkObjectResult>(formatResult);
         var returnedFormats = Assert.IsType<List<string>>(okResult.Value);
         Assert.Equal(3,returnedFormats.Count);
-        
     }
+    
+    public class ControllerTestBuilder
+    {
+        private Mock<IInputValidators> _mockValidator = new();
+        private Mock<IAllDataFetcher> _mockDataFetcher = new();
+        private Mock<IPokemonSelector> _mockSelector = new();
+    
+        public ControllerTestBuilder WithValidInput()
+        {
+            _mockValidator.Setup(v => v.IsValidDate(It.IsAny<string>())).Returns(true);
+            _mockValidator.Setup(v => v.IsValidFormat(It.IsAny<string>())).Returns(true);
+            _mockValidator.Setup(v => v.IsValidPokemon(It.IsAny<string>())).Returns(true);
+            return this;
+        }
+    
+        public ControllerTestBuilder WithInvalidDate()
+        {
+            _mockValidator.Setup(v => v.IsValidDate(It.IsAny<string>())).Returns(false);
+            return this;
+        }
+    
+        public ControllerTestBuilder WithDataReturned()
+        {
+            _mockDataFetcher.Setup(f => f.GetAllData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<PaginationFilter>()))
+                   .ReturnsAsync(new SmogonResponse { Data = new Dictionary<string, Pokemon>() });
+            return this;
+        }
+
+        public ControllerTestBuilder WithPokemonSelected()
+        {
+            _mockSelector.Setup(s => s.GetAllPokemonData(It.IsAny<string>(), It.IsAny<string>(),It.IsAny<string>()))
+                    .ReturnsAsync(new SmogonResponse{Data = new Dictionary<string, Pokemon>()});
+            return this;
+        }
+    
+        public SmogonPokemonAPIController Build()
+        {
+            return new SmogonPokemonAPIController(
+                Mock.Of<ILogger<SmogonPokemonAPIController>>(),
+                _mockValidator.Object,
+                Mock.Of<IDateFetcherService>(),
+                Mock.Of<IFormatFetcherService>(),
+                _mockDataFetcher.Object,
+                _mockSelector.Object);
+        }
+    }
+
+    // Usage:
+    [Fact]
+    public async Task GetFromJsonAsync_ValidInput_ReturnsOkResult()
+    {
+        var controller = new ControllerTestBuilder()
+            .WithValidInput()
+            .WithDataReturned()
+            .Build();
+
+        var result = await controller.GetFromJsonAsync("2024-01", "gen1moderngen1-0.json", new PaginationFilter());
+
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task GetFromAsync_Selected_Pokemon_ReturnsOk()
+    {
+        var controller = new ControllerTestBuilder()
+            .WithValidInput()
+            .WithPokemonSelected()
+            .Build();
+
+        var result = await controller.GetPokemonFromJsonAsync("2024-01", "gen1moderngen1-0.json", "Archeops");
+        Assert.IsType<OkObjectResult>(result);
+    }
+
 }
