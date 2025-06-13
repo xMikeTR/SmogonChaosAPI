@@ -86,7 +86,7 @@ public class SmogonPokemonAPIController : ControllerBase
 
     [HttpGet("pokemondata")]
     [ResponseCache(Duration = 60, VaryByQueryKeys = new[] {"date","format","selected"})]
-    public async Task<IActionResult> GetFromJsonAsync(string date, string format,string selected)
+    public async Task<IActionResult> GetPokemonFromJsonAsync(string date, string format,string selected)
     {
         if (!_inputValidators.IsValidDate(date))
         {
@@ -98,7 +98,7 @@ public class SmogonPokemonAPIController : ControllerBase
             return BadRequest(new{Success = false, Error="Invalid battle format, please use something like gen5ou-0."});
         }
 
-        if (string.IsNullOrWhiteSpace(selected))
+        if (!_inputValidators.IsValidPokemon(selected))
         {
             _logger.LogWarning("Invalid Pokemon name received: {selected}. Selected should not be empty.", selected);
             return BadRequest(new{Success = false, Error="Invalid Pokemon Name"});

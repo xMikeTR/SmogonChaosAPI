@@ -46,4 +46,14 @@ public class InputValidators : IInputValidators
         }
         return true;
     }
+
+    public bool IsValidPokemon(string selected)
+    {
+        if (string.IsNullOrWhiteSpace(selected))
+        {
+            _logger.LogWarning("Invalid Pokemon name received: {selected}. Selected should not be empty.", selected);
+            return false;
+        }
+        return true;
+    }
 }

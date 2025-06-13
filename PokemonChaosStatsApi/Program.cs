@@ -37,6 +37,7 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 builder.Services.AddResponseCaching();
+builder.Services.AddScoped<IInputValidators, InputValidators>();
 builder.Services.AddScoped<IDateFetcherService, DateFetcherService>();
 builder.Services.AddScoped<IFormatFetcherService, FormatDateFetcherService>();
 builder.Services.AddScoped<IAllDataFetcher, AllDataFetcher>();
