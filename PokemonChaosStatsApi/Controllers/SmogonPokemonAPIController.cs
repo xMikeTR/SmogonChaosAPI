@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Diagnostics;
 namespace PokemonChaosStatsApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class SmogonPokemonAPIController : ControllerBase
 {
     private readonly ILogger<SmogonPokemonAPIController> _logger;
