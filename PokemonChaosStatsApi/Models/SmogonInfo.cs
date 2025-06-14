@@ -1,3 +1,5 @@
+//Info model of each JSON containing information about the Format
+
 namespace PokemonChaosStatsApi.Models;
 
 public class Info

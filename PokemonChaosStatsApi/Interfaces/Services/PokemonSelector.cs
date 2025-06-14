@@ -1,3 +1,7 @@
+//Specific Pokemon filtering, carrying over much of the code from AllData, we do not pass a pagination filter here
+//Filtering of Pokemon name used through Dictionary, as source data is a Nested Dictionary itself
+//Keys become the pokemon name, thus the filtering is based on the Keys of the dictionary Data
+
 using Microsoft.AspNetCore.Mvc;
 using PokemonChaosStatsApi.Models;
 using System.Net.Http.Json;

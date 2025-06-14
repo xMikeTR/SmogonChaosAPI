@@ -1,3 +1,4 @@
+//Interface to abstract the Streaming HTTP request
 using PokemonChaosStatsApi.Models;
 
 public interface IRequestsService

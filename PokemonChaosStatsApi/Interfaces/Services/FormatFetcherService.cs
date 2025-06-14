@@ -1,3 +1,5 @@
+//Implementation of Format interface grabbing formats based on the Date provided, using WebGet
+
 using HtmlAgilityPack;
 
 public class FormatDateFetcherService : IFormatFetcherService

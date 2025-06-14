@@ -1,3 +1,4 @@
+//Interface for getting data on a specific pokemon
 using PokemonChaosStatsApi.Models;
 using Microsoft.AspNetCore.Mvc;
 

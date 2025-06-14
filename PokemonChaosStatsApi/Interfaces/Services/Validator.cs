@@ -1,3 +1,6 @@
+//Validation service to check for proper date format and whitespaces
+//No Regex forcing on format nor Pokemon name as that was causing too much restriction
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PokemonChaosStatsApi.Models;

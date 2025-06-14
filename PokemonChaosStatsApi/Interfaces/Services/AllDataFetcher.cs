@@ -1,3 +1,7 @@
+//Service to bring all available data based on date and format,
+// A Dictionary is created based on the models as JSOn is deserialized
+
+
 using Microsoft.AspNetCore.Mvc;
 using PokemonChaosStatsApi.Models;
 using System.Net.Http.Json;

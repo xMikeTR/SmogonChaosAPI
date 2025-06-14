@@ -1,3 +1,4 @@
+//Pagination helper class to allow filtering of the data
 public class PaginationFilter
 {
     public int PageNumber { get; set; }

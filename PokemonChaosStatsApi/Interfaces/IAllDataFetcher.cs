@@ -1,3 +1,4 @@
+//Interface to grab all available data for selected date and format
 using PokemonChaosStatsApi.Models;
 using Microsoft.AspNetCore.Mvc;
 

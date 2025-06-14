@@ -1,3 +1,5 @@
+//URI implementation for web headers
+
 using Microsoft.AspNetCore.WebUtilities;
 
 public class UriService : IUriService

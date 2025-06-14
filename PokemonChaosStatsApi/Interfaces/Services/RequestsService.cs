@@ -1,3 +1,6 @@
+//HTTP Service for Streaming data, Streaming was used here due to the size of each JSON
+//Deserialization method also already implemented here for use in the data methods
+
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;

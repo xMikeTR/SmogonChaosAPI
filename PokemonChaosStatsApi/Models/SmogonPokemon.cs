@@ -1,3 +1,5 @@
+//Main pokemon model containing all fields listed on each JSON
+
 using System.Text.Json.Serialization;
 namespace PokemonChaosStatsApi.Models;
 

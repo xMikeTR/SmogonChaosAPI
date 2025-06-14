@@ -1,3 +1,7 @@
+//Main controller of the api, used to get information
+//allowing users to get either all information or from a selected pokemon, filtered based on date and format
+//Caching is used for performance as well as pagination on alldata
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PokemonChaosStatsApi.Models;

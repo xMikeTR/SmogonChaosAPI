@@ -1,4 +1,8 @@
-﻿using Moq;
+﻿//Main Test class, combination of Builder pattern and normal Xunit + Mock unit testing
+//Due to nested structures, Builder pattern was implemented for AllData and PokemonSelector classes
+
+
+using Moq;
 using Microsoft.AspNetCore.Mvc;
 using PokemonChaosStatsApi.Controllers;
 using Microsoft.Extensions.Logging;
