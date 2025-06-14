@@ -1,3 +1,7 @@
+//Main controller of the api, used to get information
+//allowing users to get either all information or from a selected pokemon, filtered based on date and format
+//Caching is used for performance as well as pagination on alldata
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PokemonChaosStatsApi.Models;
@@ -18,27 +22,28 @@ namespace PokemonChaosStatsApi.Controllers;
 public class SmogonPokemonAPIController : ControllerBase
 {
     private readonly ILogger<SmogonPokemonAPIController> _logger;
-    private readonly InputValidators _inputValidators;
+    private readonly IInputValidators _inputValidators;
     private readonly IDateFetcherService _dateService;
     private readonly IFormatFetcherService _formatService;
+    private readonly IAllDataFetcher _dataFetcher;
+    private readonly IPokemonSelector _pokemonSelector;
 
     public SmogonPokemonAPIController(
         ILogger<SmogonPokemonAPIController> logger, 
-        InputValidators inputValidators,
+        IInputValidators inputValidators,
         IDateFetcherService dateService,
-        IFormatFetcherService formatService)
+        IFormatFetcherService formatService,
+        IAllDataFetcher dataFetcher,
+        IPokemonSelector pokemonSelector)
         {
             _logger = logger;
             _inputValidators = inputValidators;
             _dateService = dateService;
             _formatService = formatService;
+            _dataFetcher = dataFetcher;
+            _pokemonSelector = pokemonSelector;
         }
     
-    private static  HttpClient sharedClient = new()
-    {
-        BaseAddress = new Uri("https://www.smogon.com/"),
-        Timeout = TimeSpan.FromSeconds(15)
-    };
     //Returning available dates within Smogon stats, so users know how to filter later. Separation from main filtering endpoint for modularity
     [HttpGet("dates")]
     [ResponseCache(Duration = 60)]
@@ -48,9 +53,6 @@ public class SmogonPokemonAPIController : ControllerBase
         return Ok(dates);
     }
         
-
-    
-
     //Pass in a date in format yyyy-mm
     [HttpGet("formats")]
     [ResponseCache(Duration = 60, VaryByQueryKeys = new[] {"date"})]
@@ -66,8 +68,8 @@ public class SmogonPokemonAPIController : ControllerBase
 
 
     [HttpGet("alldata")]
-    [ResponseCache(Duration = 60, VaryByQueryKeys = new[] {"date","format"})]
-    public async Task<IActionResult> GetFromJsonAsync(string date, string format, int page = 1, int pageSize = 20)
+    [ResponseCache(Duration = 60, VaryByQueryKeys = new[] {"date","format","pageNumber","pageSize"})]
+    public async Task<IActionResult> GetFromJsonAsync(string date, string format, [FromQuery] PaginationFilter filter) //, int page = 1, int pageSize = 20)
     {
         if (!_inputValidators.IsValidDate(date))
         {
@@ -79,74 +81,16 @@ public class SmogonPokemonAPIController : ControllerBase
             return BadRequest(new{Success = false, Error="Invalid battle format, please check available formats."});
         }
 
-       
-            string url = $"stats/{date}/chaos/{format}.json";
-            using Stream stream = await sharedClient.GetStreamAsync(url);
 
-            SmogonResponse? smogonResponse = await JsonSerializer.DeserializeAsync<SmogonResponse>(
-                stream,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-            if (smogonResponse is null)
-            {
-                return NotFound("failure");
-        
-            }
-
-            var dataWithNames = smogonResponse.Data
-            .ToDictionary(kvp => kvp.Key, kvp => 
-            {
-                var pokemon = kvp.Value;
-                pokemon.Name = kvp.Key;      
-                return pokemon;
-            
-            });
-
-            int totalItems = dataWithNames.Count;
-            var pagedResults = dataWithNames
-                .Skip((page -1) * pageSize)
-                .Take(pageSize)
-                .ToDictionary(kvp=>kvp.Key, kvp=>kvp.Value);
-
-            var meta = new {
-                Page = page,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize)
-            };
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-
-            string BuildLink(int pageNum) =>
-                $"{baseUrl}?page={pageNum}&pageSize={pageSize}";
-
-            var links = new List<string>();
-
-            if (page > 1)
-                links.Add($"<${BuildLink(page - 1)}>; rel=\"prev\"");
-
-            if (page < totalPages)
-                links.Add($"<${BuildLink(page + 1)}>; rel=\"next\"");
-
-            links.Add($"<${BuildLink(1)}>; rel=\"first\"");
-            links.Add($"<${BuildLink(totalPages)}>; rel=\"last\"");
-
-            Response.Headers.Add("Link", string.Join(", ", links));
-
-
-            return Ok(new {
-                smogonResponse.Info,
-                Meta = meta,
-                Data = pagedResults
-            });
+       var alldata= await _dataFetcher.GetAllData(date,format,filter);
+       if(alldata == null) return NotFound();
+       return Ok(alldata);
         
     }
 
     [HttpGet("pokemondata")]
     [ResponseCache(Duration = 60, VaryByQueryKeys = new[] {"date","format","selected"})]
-    public async Task<IActionResult> GetFromJsonAsync(string date, string format,string selected)
+    public async Task<IActionResult> GetPokemonFromJsonAsync(string date, string format,string selected)
     {
         if (!_inputValidators.IsValidDate(date))
         {
@@ -158,47 +102,17 @@ public class SmogonPokemonAPIController : ControllerBase
             return BadRequest(new{Success = false, Error="Invalid battle format, please use something like gen5ou-0."});
         }
 
-        if (string.IsNullOrWhiteSpace(selected))
+        if (!_inputValidators.IsValidPokemon(selected))
         {
             _logger.LogWarning("Invalid Pokemon name received: {selected}. Selected should not be empty.", selected);
             return BadRequest(new{Success = false, Error="Invalid Pokemon Name"});
         }
 
-        using Stream stream = await sharedClient.GetStreamAsync($"stats/{date}/chaos/{format}.json");
+        var allpokemon = await _pokemonSelector.GetAllPokemonData(date,format,selected);
+        if(allpokemon == null) return NotFound();
+        return Ok(allpokemon);
 
-        SmogonResponse? smogonResponse = await JsonSerializer.DeserializeAsync<SmogonResponse>(
-            stream,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-        if (smogonResponse is null)
-        {
-            return NotFound("failure");
-        
-        }
-
-        var dataWithNames = smogonResponse.Data
-        .ToDictionary(kvp => kvp.Key, kvp => 
-        {
-            var pokemon = kvp.Value;
-            pokemon.Name = kvp.Key;      
-            return pokemon;
-            
-        });
-
-
-        var filteredNames = dataWithNames
-            .Where(kvp=>kvp.Value.Name.Equals(selected,StringComparison.OrdinalIgnoreCase))
-            .ToDictionary(kvp=> kvp.Key, kvp=>kvp.Value);
-        
-        if (!dataWithNames.ContainsKey(selected))
-        {
-            _logger.LogWarning("Invalid Pokémon: {selected}", selected);
-            return NotFound(new {Success = false, Error = $"Pokémon '{selected}' not found for format '{format}' and date '{date}'."});
-        }
-
-        return Ok(new {smogonResponse.Info, Data = filteredNames});
+       
         
     }
 

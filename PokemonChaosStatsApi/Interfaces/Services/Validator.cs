@@ -1,3 +1,6 @@
+//Validation service to check for proper date format and whitespaces
+//No Regex forcing on format nor Pokemon name as that was causing too much restriction
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PokemonChaosStatsApi.Models;
@@ -12,7 +15,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using System.Text.RegularExpressions;
 
 
-public  class InputValidators
+public class InputValidators : IInputValidators
 {
     private readonly ILogger<InputValidators> _logger;
 
@@ -42,6 +45,16 @@ public  class InputValidators
         if (string.IsNullOrWhiteSpace(format))
         {
             _logger.LogWarning("Invalid format received: {format}. Format should not be empty.", format);
+            return false;
+        }
+        return true;
+    }
+
+    public bool IsValidPokemon(string selected)
+    {
+        if (string.IsNullOrWhiteSpace(selected))
+        {
+            _logger.LogWarning("Invalid Pokemon name received: {selected}. Selected should not be empty.", selected);
             return false;
         }
         return true;
