@@ -8,11 +8,14 @@ This is for whoever wishes to do Pokemon projects and requires battle data to do
 
 
 ## Screenshots
-
+Dates
 ![Dates](PokemonChaosStatsApi/Screenshots/Dates.png)
-![Format](https://via.placeholder.com/PokemonChaosStatsApi/Screenshots/Formats.png)
-![AllData](https://via.placeholder.com/PokemonChaosStatsApi/Screenshots/AllData.png)
-![PokémonSelected](https://via.placeholder.com/PokemonChaosStatsApi/Screenshots/PokemonSelected.png)
+Format
+![Format](PokemonChaosStatsApi/Screenshots/Formats.png)
+AllData
+![AllData](PokemonChaosStatsApi/Screenshots/AllData.png)
+PokémonSelected
+![PokémonSelected](PokemonChaosStatsApi/Screenshots/PokemonSelected.png)
 
 
 ## API Reference
